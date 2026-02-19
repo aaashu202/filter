@@ -1,16 +1,26 @@
-# Don't Remove Credit @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
+FROM python:3.11-slim-bookworm
 
-FROM python:3.10.8-slim-buster
+# Prevent Python from writing .pyc files & enable unbuffered logs
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN apt update && apt upgrade -y
-RUN apt install git -y
-COPY requirements.txt /requirements.txt
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN cd /
-RUN pip3 install -U pip && pip3 install -U -r requirements.txt
-RUN mkdir /VJ-FILTER-BOT
+# Set working directory
 WORKDIR /VJ-FILTER-BOT
-COPY . /VJ-FILTER-BOT
+
+# Copy only requirements first (better Docker caching)
+COPY requirements.txt .
+
+# Upgrade pip & install dependencies
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY . .
+
+# Start bot
 CMD ["python", "bot.py"]
